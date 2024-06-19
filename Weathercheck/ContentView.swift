@@ -1,24 +1,32 @@
-//
-//  ContentView.swift
-//  Weathercheck
-//
-//  Created by snlcom on 6/19/24.
-//
-
 import SwiftUI
 
 struct ContentView: View {
+    
+    @EnvironmentObject var locationManager : LocationManager
+    var weatherDataDownload = WeatherDataDownload()
+    @State var openWeatherResponse : OpenWeatherResponse?
+    
+    
     var body: some View {
         VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+            
+            if let location = locationManager.location {
+                if let  openWeatherResponse = openWeatherResponse {
+                    WeatherView(openWeatherResponse: openWeatherResponse)
+                } else {
+                    ProgressView()
+                        .task {
+                                openWeatherResponse = try? await weatherDataDownload.getWeather(location: location)
+                        }
+                }
+                
+            } else {
+                if locationManager.isLoading {
+                    ProgressView()
+                } else {
+                    FirstView()
+                }
+            }
         }
-        .padding()
     }
-}
-
-#Preview {
-    ContentView()
 }
